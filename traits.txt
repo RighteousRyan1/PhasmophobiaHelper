@@ -1,0 +1,33 @@
+Archaeologist: Must find the bone as a priority. Can't do anything else until it is found.
+Atmospheric: Can only use the candle for light.
+Back Pain: Must crouch at all times after the truck door is opened for the first time.
+Bold: Can't use the crucifix
+Chatterbox: Must always talk to the ghost when near it, say its name, ask for signs, etc. including during hunts.
+Chilly: Must keep the breaker on at all times.
+Clumsy: Drop all items when a hunt begins.
+Deafened: No sound when playing this character.
+Disorientated: Headphones are reversed when playing this character.
+Forgetful: Two random unlocked items have been forgotten, and are banned this mission. Spin the wheel to decide which items.
+Inquisitive: If the Ouija board is found, you immediately have to use it until you get a successful answer.
+Insane: Never allowed to check sanity on the truck monitor.
+Limp: Can't sprint during hunts.
+Nycotophobic: Building Lights have to stay on in the current room you are in at all times. If the breaker goes off, go get it back on ASAP.
+Oversized: Can't hide in lockers or closets.
+Paranoid: Can't hide in the same place more than once per mission (includes furniture, lockers and closets).
+Perceptive: Must use eyes and ears only to find and confirm the ghost room.
+Pharmacophobic: Can't take sanity pills.
+Photophobic: No building lights are allowed.
+Raver: Can only use glowsticks for light.
+Reckless: Can't use smudge sticks.
+Rushed: Not allowed to check the breaker location on the truck monitor.
+Shy: Not allowed to talk to the ghost (this includes the Spirit Box and Ouija Board).
+Small Pockets: Can only carry 2 items.
+Thick Jumper: Must keep the breaker off at all times.
+Useless: Can't use any evidence gathering equipment.
+UV Expert: Can only use the UV torch for light.
+Drained: Cannot operate until their sanity is less than 50%. Cannot use sanity pills until their character has less than 10% sanity.
+Claustrophobic: Cannot hide in any room, closet, etc.
+Determined: Must see the ghost at least once before hiding.
+Tiny Pocket: Can only carry one item.
+Scoliosis: Cannot crouch at any time once the truck gate has opened.
+Lightless: Cannot carry any form of light (candles, UV Torch, Flashlight, etc)
