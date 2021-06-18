@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace PhasmophobiaHelper
 {
-    public class ButtonTraitRoller : UIButton
+    public sealed class ButtonTraitRoller : UIButton
     {
         public override SpriteFont Font => FontAssets.OctoberCrow;
 
@@ -23,7 +23,7 @@ namespace PhasmophobiaHelper
         public override string Name => "Trait Roller";
         public override bool ShouldDraw => Main.defaultMenu;
     }
-    public class ButtonEquipmentRandomizer : UIButton
+    public sealed class ButtonEquipmentRandomizer : UIButton
     {
         public override SpriteFont Font => FontAssets.OctoberCrow;
 
@@ -62,7 +62,7 @@ namespace PhasmophobiaHelper
         public override string Name => "Equipment Randomizer";
         public override bool ShouldDraw => Main.defaultMenu;
     }
-    public class Soon1 : UIButton
+    public sealed class Soon1 : UIButton
     {
         public override SpriteFont Font => FontAssets.OctoberCrow;
 
@@ -74,7 +74,7 @@ namespace PhasmophobiaHelper
         public override string Name => "Coming Soon!";
         public override bool ShouldDraw => Main.defaultMenu;
     }
-    public class Soon2 : UIButton
+    public sealed class Soon2 : UIButton
     {
         public override SpriteFont Font => FontAssets.OctoberCrow;
 
@@ -86,7 +86,7 @@ namespace PhasmophobiaHelper
         public override string Name => "Coming Soon!";
         public override bool ShouldDraw => Main.defaultMenu;
     }
-    public class ButtonNumRoll : UIButton
+    public sealed class ButtonNumRoll : UIButton
     {
         public override SpriteFont Font => FontAssets.OctoberCrow;
 
@@ -133,5 +133,16 @@ namespace PhasmophobiaHelper
             }
         }
         public override bool ShouldDraw => Main.traitRollerMenu || Main.randEquipmentMenu;
+    }
+    public sealed class ButtonBGSounds : UIButton
+    {
+        public static bool on = true;
+        public override bool OnClick()
+        {
+            on = !on;
+            return base.OnClick();
+        }
+        public override string Name => "BG Noise: " + (on ? "On" : "Off");
+        public override Vector2 DrawPosition => new Vector2(100, Main.screenHeight - 20);
     }
 }

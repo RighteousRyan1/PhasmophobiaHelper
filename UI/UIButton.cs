@@ -27,15 +27,11 @@ namespace PhasmophobiaHelper.UI
             set { }
         }
 
-        public virtual string Name
-        {
-            get => "N/A";
-            set { }
-        }
+        public virtual string Name => "N/A";
 
         public virtual bool ShouldDraw => true;
 
-        public virtual SpriteFont Font => null;
+        public virtual SpriteFont Font => FontAssets.OctoberCrow;
         public virtual SpriteEffects SpriteFX => default;
 
         public Rectangle HoverBox { get; private set; }
@@ -58,7 +54,7 @@ namespace PhasmophobiaHelper.UI
 
             if (Main.isCurWindow)
             {
-                if (Main.LastUpdateTime.TotalGameTime.TotalMilliseconds > 0.001)
+                if (Main.LastGameTime.TotalGameTime.TotalMilliseconds > 0.001)
                 {
                     if (_newHover && !_oldHover && CanBeClicked)
                     {

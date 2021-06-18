@@ -116,5 +116,11 @@ namespace PhasmophobiaHelper
             chosenTs.Clear();
             return values;
         }
+        public static void Apply3DToWithPosition(this SoundEffectInstance sfx, AudioListener listener, AudioEmitter emitter, Vector3 position)
+        {
+            emitter.Position = position;
+            listener.Position = new Vector3(0, 0, 0);
+            sfx.Apply3D(listener, emitter);
+        }
     }
 }

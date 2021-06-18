@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
 
 namespace PhasmophobiaHelper
 {
@@ -21,6 +22,7 @@ namespace PhasmophobiaHelper
         public static Vector2 MouseCoords { get; set; }
 
         public static List<UIButton> UIButtons = new List<UIButton>();
+        public static List<SpriteSheet> SpriteSheets = new List<SpriteSheet>();
 
         public static SpriteSortMode DefaultSort = SpriteSortMode.Deferred;
         public static BlendState DefaultBlend = BlendState.AlphaBlend;
@@ -62,7 +64,9 @@ namespace PhasmophobiaHelper
         private static List<string> chosenEquips = new List<string>();
         private static List<string> traitsChosen = new List<string>();
 
-        public static GameTime LastUpdateTime { get; set; }
+        public static GameTime LastGameTime { get; set; }
+
+        public static RenderTarget2D ScreenTarget;
 
         public enum ScreenMode
         {
@@ -84,12 +88,12 @@ namespace PhasmophobiaHelper
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
-
         protected override void Initialize()
         {
             GD.PreferredBackBufferWidth += 400;
             GD.PreferredBackBufferHeight += 400;
             GD.ApplyChanges();
+            ScreenTarget = new RenderTarget2D(GraphicsDevice, Window.ClientBounds.Width, Window.ClientBounds.Height);
             MaxTraits = Traits.ToArray().Length - 1;
 
             _barPos = 100f;
@@ -97,16 +101,48 @@ namespace PhasmophobiaHelper
             Window.Title = "Phasmophobia Helper";
 
             UIButtons = Utils.GetChildren<UIButton>();
+            SpriteSheets = Utils.GetChildren<SpriteSheet>();
 
             foreach (var button in UIButtons)
             {
                 button.AutoDefaults();
                 button.Initialize();
             }
+            try
+            {
+                string s = "";
+
+                if (File.ReadAllLines("config.json").Length > 0)
+                {
+                    s = File.ReadAllLines("config.json")[0].Replace("\"", "").Replace("Volume", "").Replace(":", "").Replace(",", "");
+                    _barPos = (float)Math.Round((float.Parse(s) * 100));
+                }
+                string s2 = "";
+                if (File.ReadAllLines("config.json").Length > 1)
+                {
+                    s2 = File.ReadAllLines("config.json")[1].Replace("\"", "").Replace("MusicOn", "").Replace(":", "").Replace(",", "");
+                    ButtonBGSounds.on = bool.Parse(s2);
+                }
+            }
+            catch(AccessViolationException e)
+            {
+                Console.WriteLine(e.Message);
+            }
 
             base.Initialize();
         }
-
+        protected override void OnExiting(object sender, EventArgs args)
+        {
+            string jsonFile = "config.json";
+            try
+            {
+                File.WriteAllText(jsonFile, $"\"Volume\": \"{appVolume}\",\n\"MusicOn\": \"{ButtonBGSounds.on}\"");
+            }
+            catch(AccessViolationException e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
         protected override void LoadContent()
         {
             Batch = new SpriteBatch(GraphicsDevice);
@@ -114,14 +150,16 @@ namespace PhasmophobiaHelper
             FontAssets.LoadFonts();
             TextureAssets.LoadTextures();
             SoundAssets.LoadSounds();
+            FXAssets.LoadFX();
         }
 
+        private static bool areSheetsInitialized;
         protected override void Update(GameTime gameTime)
         {
             defaultMenu = MenuMode == ScreenMode.Default;
             traitRollerMenu = MenuMode == ScreenMode.TraitRoller;
             randEquipmentMenu = MenuMode == ScreenMode.EquipmentRandomizer;
-            LastUpdateTime = gameTime;
+            LastGameTime = gameTime;
             SoundAssets.UpdateSoundVolumes();
             appVolume = _barPos / 100;
             mouseRight = Utils.mouseState.RightButton == ButtonState.Pressed;
@@ -132,10 +170,23 @@ namespace PhasmophobiaHelper
             Utils.mouseState = Mouse.GetState();
             Utils.keyboardState = Keyboard.GetState();
 
+
+            foreach (var sheet in SpriteSheets)
+            {
+                sheet.Update();
+            }
             foreach (var button in UIButtons)
             {
                 if (button.ShouldDraw)
                     button.UpdateButton();
+
+                if (!areSheetsInitialized)
+                {
+                    button.AutoDefaults();
+                    button.Initialize();
+
+                    areSheetsInitialized = true;
+                }
             }
 
             if (!defaultMenu)
@@ -185,17 +236,28 @@ namespace PhasmophobiaHelper
                 clearColor.R = randByte;
                 clearColor.G = randByte;
                 clearColor.B = randByte;
+                FXAssets.oIntensity_BV = 1f;
             }
+
+            FXAssets.UpdateFX();
         }
 
-        public Color clearColor = new Color(60, 60, 60);
+        public Color clearColor = new Color(40, 40, 40);
         protected override void Draw(GameTime gameTime)
         {
 
+            if (!IsActive)
+                SoundAssets.MenuLoop.Volume = 0f;
 
-            GraphicsDevice.Clear(clearColor);
-
-            Batch.Begin(DefaultSort, DefaultBlend);
+            GraphicsDevice.Clear(ButtonBGSounds.on ? clearColor : Color.Black);
+            GraphicsDevice.SetRenderTarget(ScreenTarget); // setrendertarget(target)
+            Batch.Begin(DefaultSort, DefaultBlend, null, null, null, null); // begin(noeffect)
+            // draw...
+            foreach (var sheet in SpriteSheets)
+            {
+                if (sheet.ShouldDraw)
+                    sheet.Draw();
+            }
             if (defaultMenu)
             {
                 DrawResults = false;
@@ -203,15 +265,25 @@ namespace PhasmophobiaHelper
                 DrawVolumeSlider();
             }
             DrawResult();
+            /*Batch.DrawString(FontAssets.Arial, $"{str1} | {str2}", new Vector2(100, 30), Color.White, 0f,
+              FontAssets.Arial.MeasureString($"{str1} | {str2}") / 2, 0.75f, SpriteEffects.None, 1f);*/
             foreach (var button in UIButtons)
             {
                 if (button.ShouldDraw)
                 {
                     //Batch.DrawString(FontAssets.Arial, button.ToString(), button.DrawPosition + new Vector2(0, 30), Color.White, 0f,
-                      //  FontAssets.Arial.MeasureString(button.ToString()) / 2, 0.75f, SpriteEffects.None, 1f);
+                    //  FontAssets.Arial.MeasureString(button.ToString()) / 2, 0.75f, SpriteEffects.None, 1f);
                     button.Draw(false);
                 }
             }
+            DrawInfo();
+            Batch.End(); // end...
+            GraphicsDevice.SetRenderTarget(null);
+
+            GraphicsDevice.Clear(ButtonBGSounds.on ? clearColor : Color.Black);
+            Batch.Begin(DefaultSort, null, null, null, null, FXAssets.BlackVignette);
+
+            Batch.Draw(ScreenTarget, new Rectangle(0, 0, ScreenTarget.Width, ScreenTarget.Height), Color.White);
 
             Batch.End();
 
@@ -244,7 +316,15 @@ namespace PhasmophobiaHelper
                 }
             }
         }
-
+        public static void DrawInfo()
+        {
+            if (!defaultMenu)
+            {
+                string str = $"Press 'Escape' to return";
+                var pos = new Vector2(screenWidth / 2, screenHeight - 20);
+                Batch.DrawString(FontAssets.OctoberCrow, str, pos, Color.White, 0f, FontAssets.OctoberCrow.MeasureString(str) / 2, 0.5f, default, 0f);
+            }
+        }
         public static void DrawResult()
         {
             if (DrawResults)

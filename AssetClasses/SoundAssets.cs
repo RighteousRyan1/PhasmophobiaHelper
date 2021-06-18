@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework.Audio;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+using System;
 
 namespace PhasmophobiaHelper.AssetClasses
 {
@@ -32,6 +34,7 @@ namespace PhasmophobiaHelper.AssetClasses
 
             SFXMenuLoop = main.Content.Load<SoundEffect>("Sounds/MenuLoop");
             MenuLoop = SFXMenuLoop.CreateInstance();
+            MenuLoop.Apply3D(listener, emitter);
             MenuLoop.IsLooped = true;
             MenuLoop?.Play();
 
@@ -43,13 +46,8 @@ namespace PhasmophobiaHelper.AssetClasses
         }
         public static void UpdateSoundVolumes()
         {
-            UIEnter.Volume = Main.appVolume;
-            UILeave.Volume = Main.appVolume;
-            for (int i = 0; i < SFXUITick.Length - 1; i++)
-            {
-                UITick[i].Volume = Main.appVolume;
-            }
-            MenuLoop.Volume = Main.appVolume;
+            SoundEffect.MasterVolume = Main.appVolume;
+            if (Main.Instance.IsActive) MenuLoop.Volume = ButtonBGSounds.on ? Main.appVolume : 0f;
         }
     }
 }
