@@ -91,7 +91,7 @@ namespace PhasmophobiaHelper
         }
         public static T PickRandom<T>(T[] input)
         {
-            int rand = new Random().Next(0, input.Length - 1);
+            int rand = new Random().Next(0, input.Length);
 
             return input[rand];
         }
@@ -103,7 +103,7 @@ namespace PhasmophobiaHelper
             for (int i = 0; i < amount; i++)
             {
             ReRoll:
-                int rand = new Random().Next(0, input.Length - 1);
+                int rand = new Random().Next(0, input.Length);
 
                 if (!chosenTs.Contains(rand))
                 {

@@ -19,7 +19,7 @@ namespace PhasmophobiaHelper.UI
         public virtual bool CanBeClicked => true;
         public bool IsHovered { get; private set; }
 
-        public virtual Vector2 DrawPosition => Vector2.One;
+        public virtual Vector2 DrawPosition { get; internal set; }
 
         public virtual Color Color
         {
@@ -27,21 +27,53 @@ namespace PhasmophobiaHelper.UI
             set { }
         }
 
-        public virtual string Name => "N/A";
+        public virtual string Name { get; internal set; }
 
-        public virtual bool ShouldDraw => true;
+        public virtual bool ShouldDraw { get => true; private set { } }
 
-        public virtual SpriteFont Font => FontAssets.OctoberCrow;
+        public virtual SpriteFont Font { get => FontAssets.OctoberCrow; private set { } }
         public virtual SpriteEffects SpriteFX => default;
 
         public Rectangle HoverBox { get; private set; }
 
-        private float scale;
-        public float rotation;
+        public bool CurrentlyClicked { get; private set; }
 
+        public float scale;
+        public float rotation;
 
         private bool _newHover;
         private bool _oldHover;
+        public UIButton() { }
+        public UIButton(string name, Vector2 pos, SpriteFont font, bool drawIf, Color color, Action onClick)
+        {
+            Name = name;
+            DrawPosition = pos;
+            Font = font;
+            ShouldDraw = drawIf;
+            if (Main.isCurWindow)
+            {
+                if (Main.LastGameTime.TotalGameTime.TotalMilliseconds > 0.001)
+                {
+                    if (_newHover && !_oldHover && CanBeClicked)
+                    {
+                        int choice = new Random().Next(0, 3);
+
+                        Utils.PlaySoundInstance(SoundAssets.UITick[choice], SoundAssets.SFXUITick[choice]);
+                    }
+
+                    if (Utils.ClickStart() && IsHovered && CanBeClicked)
+                    {
+                        Utils.PlaySoundInstance(SoundAssets.UIEnter, SoundAssets.SFXUIEnter);
+                        onClick?.Invoke();
+                    }
+                }
+            }
+
+            if (drawIf)
+            {
+                Main.Batch.DrawString(Font, Name, DrawPosition, Color, rotation, Font.MeasureString(Name) / 2, scale, SpriteFX, 0f);
+            }
+        }
         internal void UpdateButton()
         {
             Vector2 origin = Font.MeasureString(Name) / 2;
@@ -67,7 +99,11 @@ namespace PhasmophobiaHelper.UI
                     {
                         Utils.PlaySoundInstance(SoundAssets.UIEnter, SoundAssets.SFXUIEnter);
                         OnClick();
+                        CurrentlyClicked = true;
+                        Clicked?.Invoke(this, new EventArgs());
                     }
+                    else
+                        CurrentlyClicked = false;
                 }
             }
 
@@ -75,12 +111,12 @@ namespace PhasmophobiaHelper.UI
             {
                 if (IsHovered)
                 {
-                    if (scale < 1.1825f)
+                    if (scale < 1.2f)
                         scale += 0.0175f;
                 }
                 else
                 {
-                    if (scale > 1.0175f)
+                    if (scale > 1f)
                         scale -= 0.0175f;
                 }
             }
@@ -111,5 +147,7 @@ namespace PhasmophobiaHelper.UI
             scale = 1f;
             rotation = 0f;
         }
+
+        public event EventHandler Clicked;
     }
 }

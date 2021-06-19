@@ -4,9 +4,6 @@ using Microsoft.Xna.Framework.Input;
 using PhasmophobiaHelper.AssetClasses;
 using PhasmophobiaHelper.UI;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 
 namespace PhasmophobiaHelper
 {
@@ -62,16 +59,18 @@ namespace PhasmophobiaHelper
         public override string Name => "Equipment Randomizer";
         public override bool ShouldDraw => Main.defaultMenu;
     }
-    public sealed class Soon1 : UIButton
+    public sealed class LocationRandomizer : UIButton
     {
         public override SpriteFont Font => FontAssets.OctoberCrow;
-
+        
         public override bool OnClick()
         {
+            Main.MenuMode = Main.ScreenMode.LocationRandomizer;
             return base.OnClick();
         }
+
         public override Vector2 DrawPosition => new Vector2(Main.screenWidth / 4, Main.screenHeight / 4 + Main.screenHeight / 2);
-        public override string Name => "Coming Soon!";
+        public override string Name => "Location Randomizer";
         public override bool ShouldDraw => Main.defaultMenu;
     }
     public sealed class Soon2 : UIButton

@@ -6,6 +6,7 @@ using PhasmophobiaHelper.AssetClasses;
 using PhasmophobiaHelper.UI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
@@ -16,17 +17,12 @@ namespace PhasmophobiaHelper
     {
         public GraphicsDeviceManager GD { get; set; }
         public static SpriteBatch Batch { get; set; }
-
         public static Main Instance;
-
         public static Vector2 MouseCoords { get; set; }
-
         public static List<UIButton> UIButtons = new List<UIButton>();
         public static List<SpriteSheet> SpriteSheets = new List<SpriteSheet>();
-
         public static SpriteSortMode DefaultSort = SpriteSortMode.Deferred;
         public static BlendState DefaultBlend = BlendState.AlphaBlend;
-
         public static List<string> Traits
         {
             get
@@ -45,42 +41,70 @@ namespace PhasmophobiaHelper
                 return traitsStrList;
             }
         }
+        public static string[][] hidingSpots =
+        {
+            //SmallHouses
+            new string[]
+            {
+                "Bedrooms",
+                "Lockers",
+                "Bathrooms",
+                "The Basement",
+                "The Garage",
+                "Kitchen"
+            },
+            // HighSchool
+            new string[]
+            {
+                "Classrooms",
+                "Janitor Rooms",
+                "The Gym"
+            },
+            // Asylum
+            new string[]
+            {
+                "Bedrooms",
+                "Cooking Rooms"
+            }
+        };
         public static int MaxTraits;
-
         public static float appVolume;
-
         public static int screenWidth;
         public static int screenHeight;
-
         public static Vector2 ScreenDimensions;
-
         public static bool isCurWindow;
-
         public static bool mouseRight;
         public static bool mouseLeft;
-
         public static bool DrawResults;
-
         private static List<string> chosenEquips = new List<string>();
         private static List<string> traitsChosen = new List<string>();
-
         public static GameTime LastGameTime { get; set; }
-
         public static RenderTarget2D ScreenTarget;
-
         public enum ScreenMode
         {
             Default,
             TraitRoller,
-            EquipmentRandomizer
+            EquipmentRandomizer,
+            LocationRandomizer,
+            Misc
         }
-
+        public enum Map
+        {
+            Tanglewood,
+            Ridgeview,
+            Willow,
+            Edgefield,
+            HighSchool,
+            Prison,
+            Asylum
+        }
+        public static Map MapMode;
         public static ScreenMode MenuMode = ScreenMode.Default;
-
         public static bool defaultMenu;
         public static bool traitRollerMenu;
         public static bool randEquipmentMenu;
-
+        public static bool locationRandomizerMenu;
+        public static bool miscMenu;
         public Main()
         {
             Instance = this;
@@ -152,13 +176,23 @@ namespace PhasmophobiaHelper
             SoundAssets.LoadSounds();
             FXAssets.LoadFX();
         }
-
         private static bool areSheetsInitialized;
+        private static bool IsHouse { get; set; }
+        private static bool IsMediumMap { get; set; }
+        private static bool IsLargeMap { get; set; }
+
+        private static string displayedLocation;
         protected override void Update(GameTime gameTime)
         {
+            #region Field Updating
+            IsHouse = MapMode == Map.Edgefield || MapMode == Map.Ridgeview || MapMode == Map.Willow || MapMode == Map.Tanglewood;
+            IsMediumMap = MapMode == Map.Prison || MapMode == Map.HighSchool;
+            IsLargeMap = MapMode == Map.Asylum;
             defaultMenu = MenuMode == ScreenMode.Default;
             traitRollerMenu = MenuMode == ScreenMode.TraitRoller;
             randEquipmentMenu = MenuMode == ScreenMode.EquipmentRandomizer;
+            locationRandomizerMenu = MenuMode == ScreenMode.LocationRandomizer;
+            miscMenu = MenuMode == ScreenMode.Misc;
             LastGameTime = gameTime;
             SoundAssets.UpdateSoundVolumes();
             appVolume = _barPos / 100;
@@ -166,15 +200,9 @@ namespace PhasmophobiaHelper
             mouseLeft = Utils.mouseState.LeftButton == ButtonState.Pressed;
             isCurWindow = IsActive;
             MouseCoords = Utils.mouseState.Position.ToVector2();
-
             Utils.mouseState = Mouse.GetState();
             Utils.keyboardState = Keyboard.GetState();
-
-
-            foreach (var sheet in SpriteSheets)
-            {
-                sheet.Update();
-            }
+            #endregion
             foreach (var button in UIButtons)
             {
                 if (button.ShouldDraw)
@@ -188,7 +216,6 @@ namespace PhasmophobiaHelper
                     areSheetsInitialized = true;
                 }
             }
-
             if (!defaultMenu)
             {
                 if (Utils.KeyJustPressed(Keys.Escape))
@@ -197,13 +224,26 @@ namespace PhasmophobiaHelper
                     MenuMode = ScreenMode.Default;
                 }
             }
-            if (randEquipmentMenu)
+            if (randEquipmentMenu || locationRandomizerMenu)
             {
                 if (Utils.KeyJustPressed(Keys.Enter))
                 {
                     chosenEquips = Utils.PickRandom(ButtonEquipmentRandomizer.totalEquipment, ButtonNumRoll.RandNum);
                     Utils.PlaySoundInstance(SoundAssets.UITick[0], SoundAssets.SFXUITick[0]);
                     DrawResults = true;
+
+                    if (IsHouse)
+                    {
+                        displayedLocation = Utils.PickRandom(hidingSpots[0]);
+                    }
+                    if (IsMediumMap)
+                    {
+                        displayedLocation = Utils.PickRandom(hidingSpots[1]);
+                    }
+                    if (IsLargeMap)
+                    {
+                        displayedLocation = Utils.PickRandom(hidingSpots[2]);
+                    }
                 }
             }
             if (traitRollerMenu)
@@ -215,15 +255,11 @@ namespace PhasmophobiaHelper
                     DrawResults = true;
                 }
             }
-
             Utils.mouseStateOld = Utils.mouseState;
             Utils.keyboardStateOld = Utils.keyboardState;
-
             screenWidth = Window.ClientBounds.Width;
             screenHeight = Window.ClientBounds.Height;
-
             ScreenDimensions = new Vector2(screenWidth, screenHeight);
-
             if (clearColor.R > 0)
             {
                 clearColor.R--;
@@ -236,16 +272,13 @@ namespace PhasmophobiaHelper
                 clearColor.R = randByte;
                 clearColor.G = randByte;
                 clearColor.B = randByte;
-                FXAssets.oIntensity_BV = 1f;
+                FXAssets.oIntensity_BV = 1f * appVolume;
             }
-
             FXAssets.UpdateFX();
         }
-
         public Color clearColor = new Color(40, 40, 40);
         protected override void Draw(GameTime gameTime)
         {
-
             if (!IsActive)
                 SoundAssets.MenuLoop.Volume = 0f;
 
@@ -265,8 +298,6 @@ namespace PhasmophobiaHelper
                 DrawVolumeSlider();
             }
             DrawResult();
-            /*Batch.DrawString(FontAssets.Arial, $"{str1} | {str2}", new Vector2(100, 30), Color.White, 0f,
-              FontAssets.Arial.MeasureString($"{str1} | {str2}") / 2, 0.75f, SpriteEffects.None, 1f);*/
             foreach (var button in UIButtons)
             {
                 if (button.ShouldDraw)
@@ -321,9 +352,12 @@ namespace PhasmophobiaHelper
             if (!defaultMenu)
             {
                 string str = $"Press 'Escape' to return";
+                string str2 = $"Press 'Enter' to display randomizer roll";
                 var pos = new Vector2(screenWidth / 2, screenHeight - 20);
-                Batch.DrawString(FontAssets.OctoberCrow, str, pos, Color.White, 0f, FontAssets.OctoberCrow.MeasureString(str) / 2, 0.5f, default, 0f);
+                Batch.DrawString(FontAssets.OctoberCrow, str2, pos, Color.White, 0f, FontAssets.OctoberCrow.MeasureString(str2) / 2, 0.5f, default, 0f);
+                Batch.DrawString(FontAssets.OctoberCrow, str, pos - new Vector2(0, 20), Color.White, 0f, FontAssets.OctoberCrow.MeasureString(str) / 2, 0.5f, default, 0f);
             }
+
         }
         public static void DrawResult()
         {
@@ -349,6 +383,24 @@ namespace PhasmophobiaHelper
                         float getY = screenHeight / 7 + (j - 1) * 35;
                         Vector2 getGoodCoords = getY < screenHeight ? new Vector2(screenWidth / 2, getY) : new Vector2(screenWidth / 2, screenHeight / 7 + (j - 13) * 35);
                         Batch.DrawString(FontAssets.OctoberCrow, str, getGoodCoords, Color.White, 0f, FontAssets.OctoberCrow.MeasureString(str) / 2, 0.6f, default, 0f);
+                    }
+                }
+                if (locationRandomizerMenu)
+                {
+                    if (IsHouse)
+                    {
+                        Batch.DrawString(FontAssets.OctoberCrow, "You cannot hide in... " + displayedLocation + ".", new Vector2(screenWidth / 2, screenHeight / 2), Color.White, 0f, 
+                            FontAssets.OctoberCrow.MeasureString("You cannot hide in... " + displayedLocation + ".") / 2, 1.75f, default, 0f);
+                    }
+                    if (IsMediumMap)
+                    {
+                        Batch.DrawString(FontAssets.OctoberCrow, "You cannot hide in... " + displayedLocation + ".", new Vector2(screenWidth / 2, screenHeight / 2), Color.White, 0f,
+                            FontAssets.OctoberCrow.MeasureString("You cannot hide in... " + displayedLocation + ".") / 2, 1.75f, default, 0f);
+                    }
+                    if (IsLargeMap)
+                    {
+                        Batch.DrawString(FontAssets.OctoberCrow, "You cannot hide in... " + displayedLocation + ".", new Vector2(screenWidth / 2, screenHeight / 2), Color.White, 0f,
+                            FontAssets.OctoberCrow.MeasureString("You cannot hide in... " + displayedLocation + ".") / 2, 1.75f, default, 0f);
                     }
                 }
             }
