@@ -106,6 +106,7 @@ namespace PhasmophobiaHelper
         public static bool locationRandomizerMenu;
         public static bool miscMenu;
         public Color clearColor = new Color(40, 40, 40);
+        public static string version = "v1.2.1";
         public Main()
         {
             Instance = this;
@@ -259,6 +260,22 @@ namespace PhasmophobiaHelper
                     DrawResults = true;
                 }
             }
+            void MakeVersionNumberRectangle()
+            {
+                Rectangle hover = new Rectangle(6, 6, 60, 30);
+
+                if (hover.Contains(MouseCoords.ToPoint()))
+                {
+                    if (Utils.ClickStart())
+                    {
+                        Process.Start(new ProcessStartInfo("https://github.com/RighteousRyan1/PhasmophobiaHelper/releases/tag/" + version.Replace("v", string.Empty))
+                        {
+                            UseShellExecute = true
+                        });
+                    }
+                }
+            }
+            MakeVersionNumberRectangle();
             Utils.mouseStateOld = Utils.mouseState;
             Utils.keyboardStateOld = Utils.keyboardState;
             screenWidth = Window.ClientBounds.Width;
@@ -292,6 +309,8 @@ namespace PhasmophobiaHelper
             if (defaultMenu)
                 Batch.Draw(TextureAssets.PhasmoLogo, new Vector2(screenWidth / 2, screenHeight / 2), null, Color.White, 0f, TextureAssets.PhasmoLogo.GetSize() / 2, 1f, default, default);
             // draw...
+            Batch.DrawString(FontAssets.OctoberCrow, version, new Vector2(6, 6), Color.White, 0f,
+              Vector2.Zero, 0.5f, SpriteEffects.None, 1f);
             foreach (var sheet in SpriteSheets)
             {
                 if (sheet.ShouldDraw)

@@ -16,6 +16,7 @@ namespace PhasmophobiaHelper.UI
         public virtual void Initialize() { }
         public virtual void Update() { }
         public virtual bool CanBeClicked => true;
+        public virtual Vector2 Origin => Font.MeasureString(Name) / 2;
         public bool IsHovered { get; private set; }
         public virtual Vector2 DrawPosition { get; internal set; }
         public virtual Color Color
@@ -29,42 +30,11 @@ namespace PhasmophobiaHelper.UI
         public virtual SpriteEffects SpriteFX => default;
         public Rectangle HoverBox { get; private set; }
         public bool CurrentlyClicked { get; private set; }
+        public float maxScale = 1.2f;
         public float scale;
         public float rotation;
         private bool _newHover;
         private bool _oldHover;
-        public UIButton() { }
-        public UIButton(string name, Vector2 pos, SpriteFont font, bool drawIf, Color color, Action onClick)
-        {
-            Name = name;
-            DrawPosition = pos;
-            Font = font;
-            ShouldDraw = drawIf;
-            Color = color;
-            if (Main.isCurWindow)
-            {
-                if (Main.LastGameTime.TotalGameTime.TotalMilliseconds > 0.001)
-                {
-                    if (_newHover && !_oldHover && CanBeClicked)
-                    {
-                        int choice = new Random().Next(0, 3);
-
-                        Utils.PlaySoundInstance(SoundAssets.UITick[choice], SoundAssets.SFXUITick[choice]);
-                    }
-
-                    if (Utils.ClickStart() && IsHovered && CanBeClicked)
-                    {
-                        Utils.PlaySoundInstance(SoundAssets.UIEnter, SoundAssets.SFXUIEnter);
-                        onClick?.Invoke();
-                    }
-                }
-            }
-
-            if (drawIf)
-            {
-                Main.Batch.DrawString(Font, Name, DrawPosition, Color, rotation, Font.MeasureString(Name) / 2, scale, SpriteFX, 0f);
-            }
-        }
         internal void UpdateButton()
         {
             Vector2 origin = Font.MeasureString(Name) / 2;
@@ -102,7 +72,7 @@ namespace PhasmophobiaHelper.UI
             {
                 if (IsHovered)
                 {
-                    if (scale < 1.2f)
+                    if (scale < maxScale)
                         scale += 0.0175f;
                 }
                 else
@@ -126,7 +96,7 @@ namespace PhasmophobiaHelper.UI
         {
             if (beginBatch) Main.Batch.Begin(Main.DefaultSort, Main.DefaultBlend);
 
-            Main.Batch.DrawString(Font, Name, DrawPosition, Color, rotation, Font.MeasureString(Name) / 2, scale, SpriteFX, 0f);
+            Main.Batch.DrawString(Font, Name, DrawPosition, Color, rotation, Origin, scale, SpriteFX, 0f);
             //Main.Batch.Draw(TextureAssets.WhitePixel, HoverBox, Color.White * 0.25f);
 
             if (beginBatch) Main.Batch.End();
