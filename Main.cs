@@ -80,7 +80,7 @@ namespace PhasmophobiaHelper
         private static List<string> traitsChosen = new List<string>();
         public static GameTime LastGameTime { get; set; }
         public static RenderTarget2D ScreenTarget;
-        public enum ScreenMode
+        public enum Menu
         {
             Default,
             TraitRoller,
@@ -99,12 +99,13 @@ namespace PhasmophobiaHelper
             Asylum
         }
         public static Map MapMode;
-        public static ScreenMode MenuMode = ScreenMode.Default;
+        public static Menu MenuMode = Menu.Default;
         public static bool defaultMenu;
         public static bool traitRollerMenu;
         public static bool randEquipmentMenu;
         public static bool locationRandomizerMenu;
         public static bool miscMenu;
+        public Color clearColor = new Color(40, 40, 40);
         public Main()
         {
             Instance = this;
@@ -188,11 +189,11 @@ namespace PhasmophobiaHelper
             IsHouse = MapMode == Map.Edgefield || MapMode == Map.Ridgeview || MapMode == Map.Willow || MapMode == Map.Tanglewood;
             IsMediumMap = MapMode == Map.Prison || MapMode == Map.HighSchool;
             IsLargeMap = MapMode == Map.Asylum;
-            defaultMenu = MenuMode == ScreenMode.Default;
-            traitRollerMenu = MenuMode == ScreenMode.TraitRoller;
-            randEquipmentMenu = MenuMode == ScreenMode.EquipmentRandomizer;
-            locationRandomizerMenu = MenuMode == ScreenMode.LocationRandomizer;
-            miscMenu = MenuMode == ScreenMode.Misc;
+            defaultMenu = MenuMode == Menu.Default;
+            traitRollerMenu = MenuMode == Menu.TraitRoller;
+            randEquipmentMenu = MenuMode == Menu.EquipmentRandomizer;
+            locationRandomizerMenu = MenuMode == Menu.LocationRandomizer;
+            miscMenu = MenuMode == Menu.Misc;
             LastGameTime = gameTime;
             SoundAssets.UpdateSoundVolumes();
             appVolume = _barPos / 100;
@@ -203,6 +204,9 @@ namespace PhasmophobiaHelper
             Utils.mouseState = Mouse.GetState();
             Utils.keyboardState = Keyboard.GetState();
             #endregion
+
+            if (!miscMenu)
+                SubButtonChallengeRoller.chosen = false;
             foreach (var button in UIButtons)
             {
                 if (button.ShouldDraw)
@@ -221,7 +225,7 @@ namespace PhasmophobiaHelper
                 if (Utils.KeyJustPressed(Keys.Escape))
                 {
                     Utils.PlaySoundInstance(SoundAssets.UILeave, SoundAssets.SFXUILeave);
-                    MenuMode = ScreenMode.Default;
+                    MenuMode = Menu.Default;
                 }
             }
             if (randEquipmentMenu || locationRandomizerMenu)
@@ -276,7 +280,6 @@ namespace PhasmophobiaHelper
             }
             FXAssets.UpdateFX();
         }
-        public Color clearColor = new Color(40, 40, 40);
         protected override void Draw(GameTime gameTime)
         {
             if (!IsActive)
@@ -285,6 +288,9 @@ namespace PhasmophobiaHelper
             GraphicsDevice.Clear(ButtonBGSounds.on ? clearColor : Color.Black);
             GraphicsDevice.SetRenderTarget(ScreenTarget); // setrendertarget(target)
             Batch.Begin(DefaultSort, DefaultBlend, null, null, null, null); // begin(noeffect)
+            Batch.Draw(TextureAssets.RidgeviewPorch, new Rectangle(0, 0, screenWidth, screenHeight), Color.White);
+            if (defaultMenu)
+                Batch.Draw(TextureAssets.PhasmoLogo, new Vector2(screenWidth / 2, screenHeight / 2), null, Color.White, 0f, TextureAssets.PhasmoLogo.GetSize() / 2, 1f, default, default);
             // draw...
             foreach (var sheet in SpriteSheets)
             {

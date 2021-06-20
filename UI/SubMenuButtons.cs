@@ -212,4 +212,28 @@ namespace PhasmophobiaHelper.UI
         public override string Name => "Asylum";
         public override bool ShouldDraw => Main.locationRandomizerMenu;
     }
+
+    public sealed class SubButtonChallengeRoller : UIButton
+    {
+        public override SpriteFont Font => FontAssets.OctoberCrow;
+        public static string[] challenges =
+        {
+            "0% Sanity",
+            "Only Candles",
+            "No Evidence",
+            "Only Glowsticks",
+            "No Holdable Light"
+        };
+        public static bool chosen;
+        public static string chosenString;
+        public override bool OnClick()
+        {
+            chosen = true;
+            chosenString = Utils.PickRandom(challenges);
+            return base.OnClick();
+        }
+        public override Vector2 DrawPosition => new Vector2(Main.screenWidth / 5, 150);
+        public override string Name => chosen ? $"Challenge: {chosenString}" : "Random Challenge";
+        public override bool ShouldDraw => Main.miscMenu;
+    }
 }

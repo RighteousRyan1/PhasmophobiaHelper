@@ -2,152 +2,147 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using PhasmophobiaHelper.AssetClasses;
+using PhasmophobiaHelper.UI;
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 
-namespace PhasmophobiaHelper.UI
+namespace PhasmophobiaHelper
 {
-    public class UIButton
+    public sealed class ButtonTraitRoller : UIButton
     {
-        public virtual bool OnClick() => false;
-        public virtual void Holding() { }
-        public virtual bool OnRelease() => false;
-        public virtual void Initialize() { }
-        public virtual void Update() { }
-        // public virtual Rectangle ClickBox => new Rectangle();
-        public virtual bool CanBeClicked => true;
-        public bool IsHovered { get; private set; }
+        public override SpriteFont Font => FontAssets.OctoberCrow;
 
-        public virtual Vector2 DrawPosition { get; internal set; }
-
-        public virtual Color Color
+        public override bool OnClick()
         {
-            get => Color.White;
-            set { }
+            Main.MenuMode = Main.Menu.TraitRoller;
+            return base.OnClick();
+        }
+        public override Vector2 DrawPosition => new Vector2(Main.screenWidth / 4, Main.screenHeight / 4);
+        public override string Name => "Trait Roller";
+        public override bool ShouldDraw => Main.defaultMenu;
+    }
+    public sealed class ButtonEquipmentRandomizer : UIButton
+    {
+        public override SpriteFont Font => FontAssets.OctoberCrow;
+
+        public static string[] totalEquipment =
+        {
+            "EMF Reader",
+            "Thermometer",
+            "Spirit Box",
+            "Photo Camera",
+            "Ghost Writing Book",
+            "Video Camera",
+            "UV Flashlight",
+            "Flashlight",
+            "Strong Flashlight",
+            "Candle",
+            "Crucifix",
+            "Glowstick",
+            "Head-Mounted Camera",
+            "Infared Light Sensor",
+            "Lighter",
+            "Smudge Stick",
+            "Motion Sensor",
+            "Parabolic Microphone",
+            "Salt",
+            "Sanity Pills",
+            "Sound Sensor",
+            "Tripod",
+        };
+
+        public override bool OnClick()
+        {
+            Main.MenuMode = Main.Menu.EquipmentRandomizer;
+            return base.OnClick();
+        }
+        public override Vector2 DrawPosition => new Vector2(Main.screenWidth / 4 + Main.screenWidth / 2, Main.screenHeight / 4);
+        public override string Name => "Equipment Randomizer";
+        public override bool ShouldDraw => Main.defaultMenu;
+    }
+    public sealed class ButtonLocationRandomizer : UIButton
+    {
+        public override SpriteFont Font => FontAssets.OctoberCrow;
+        
+        public override bool OnClick()
+        {
+            Main.MenuMode = Main.Menu.LocationRandomizer;
+            return base.OnClick();
         }
 
-        public virtual string Name { get; internal set; }
+        public override Vector2 DrawPosition => new Vector2(Main.screenWidth / 4, Main.screenHeight / 4 + Main.screenHeight / 2);
+        public override string Name => "Location Randomizer";
+        public override bool ShouldDraw => Main.defaultMenu;
+    }
+    public sealed class ButtonMisc : UIButton
+    {
+        public override SpriteFont Font => FontAssets.OctoberCrow;
 
-        public virtual bool ShouldDraw { get => true; private set { } }
-
-        public virtual SpriteFont Font { get => FontAssets.OctoberCrow; private set { } }
-        public virtual SpriteEffects SpriteFX => default;
-
-        public Rectangle HoverBox { get; private set; }
-
-        public bool CurrentlyClicked { get; private set; }
-
-        public float scale;
-        public float rotation;
-
-        private bool _newHover;
-        private bool _oldHover;
-        public UIButton() { }
-        public UIButton(string name, Vector2 pos, SpriteFont font, bool drawIf, Color color, Action onClick)
+        public override bool OnClick()
         {
-            Name = name;
-            DrawPosition = pos;
-            Font = font;
-            ShouldDraw = drawIf;
-            if (Main.isCurWindow)
+            Main.MenuMode = Main.Menu.Misc;
+            return base.OnClick();
+        }
+        public override Vector2 DrawPosition => new Vector2(Main.screenWidth / 4 + Main.screenWidth / 2, Main.screenHeight / 4 + Main.screenHeight / 2);
+        public override string Name => "Misc";
+        public override bool ShouldDraw => Main.defaultMenu;
+    }
+    public sealed class ButtonNumRoll : UIButton
+    {
+        public override SpriteFont Font => FontAssets.OctoberCrow;
+
+        public static int RandNum;
+
+        public static int Max;
+
+        public static string[] Traits { get; set; }
+        public override bool OnClick()
+        {
+            return base.OnClick();
+        }
+        public override bool CanBeClicked => false;
+        public override void Update()
+        {
+            if (Main.randEquipmentMenu)
+                Max = ButtonEquipmentRandomizer.totalEquipment.Length - 1;
+            if (Main.traitRollerMenu)
+                Max = (int)Math.Round((double)(Main.Traits.Count / 2));
+            // Traits = File.ReadAllLines(Main.traitsLocation);
+            if (Utils.KeyJustPressed(Keys.Up) && RandNum < Max)
             {
-                if (Main.LastGameTime.TotalGameTime.TotalMilliseconds > 0.001)
-                {
-                    if (_newHover && !_oldHover && CanBeClicked)
-                    {
-                        int choice = new Random().Next(0, 3);
-
-                        Utils.PlaySoundInstance(SoundAssets.UITick[choice], SoundAssets.SFXUITick[choice]);
-                    }
-
-                    if (Utils.ClickStart() && IsHovered && CanBeClicked)
-                    {
-                        Utils.PlaySoundInstance(SoundAssets.UIEnter, SoundAssets.SFXUIEnter);
-                        onClick?.Invoke();
-                    }
-                }
+                Utils.PlaySoundInstance(SoundAssets.UITick[0], SoundAssets.SFXUITick[0]);
+                RandNum++;
+            }
+            if (Utils.KeyJustPressed(Keys.Down) && RandNum > 1)
+            {
+                Utils.PlaySoundInstance(SoundAssets.UITick[1], SoundAssets.SFXUITick[1]);
+                RandNum--;
             }
 
-            if (drawIf)
+            RandNum = Utils.Clamp(RandNum, 1, Main.traitRollerMenu ? (int)Math.Round((double)(Main.Traits.Count / 2)) : ButtonEquipmentRandomizer.totalEquipment.Length - 1);
+        }
+        public override Vector2 DrawPosition => new Vector2(Main.screenWidth / 2, 30);
+        public override string Name
+        {
+            get
             {
-                Main.Batch.DrawString(Font, Name, DrawPosition, Color, rotation, Font.MeasureString(Name) / 2, scale, SpriteFX, 0f);
+                if (Main.traitRollerMenu)
+                    return "Total Traits: " + RandNum + $" (Max {(int)Math.Round((double)(Main.Traits.Count / 2))})";
+                if (Main.randEquipmentMenu)
+                    return "Total Equipment: " + RandNum + " (Max 21)";
+                return "Total X";
             }
         }
-        internal void UpdateButton()
+        public override bool ShouldDraw => Main.traitRollerMenu || Main.randEquipmentMenu;
+    }
+    public sealed class ButtonBGSounds : UIButton
+    {
+        public static bool on = true;
+        public override bool OnClick()
         {
-            Vector2 origin = Font.MeasureString(Name) / 2;
-
-            HoverBox = new Rectangle((int)(DrawPosition.X - origin.X), (int)(DrawPosition.Y - origin.Y), (int)Font.MeasureString(Name).X, (int)Font.MeasureString(Name).Y);
-
-            IsHovered = HoverBox.Contains(Main.MouseCoords.ToPoint());
-
-            _newHover = IsHovered;
-
-            if (Main.isCurWindow)
-            {
-                if (Main.LastGameTime.TotalGameTime.TotalMilliseconds > 0.001)
-                {
-                    if (_newHover && !_oldHover && CanBeClicked)
-                    {
-                        int choice = new Random().Next(0, 3);
-
-                        Utils.PlaySoundInstance(SoundAssets.UITick[choice], SoundAssets.SFXUITick[choice]);
-                    }
-
-                    if (Utils.ClickStart() && IsHovered && CanBeClicked)
-                    {
-                        Utils.PlaySoundInstance(SoundAssets.UIEnter, SoundAssets.SFXUIEnter);
-                        OnClick();
-                        CurrentlyClicked = true;
-                        Clicked?.Invoke(this, new EventArgs());
-                    }
-                    else
-                        CurrentlyClicked = false;
-                }
-            }
-
-            if (CanBeClicked)
-            {
-                if (IsHovered)
-                {
-                    if (scale < 1.2f)
-                        scale += 0.0175f;
-                }
-                else
-                {
-                    if (scale > 1f)
-                        scale -= 0.0175f;
-                }
-            }
-
-            if (Utils.ClickRelease() && IsHovered)
-                OnRelease();
-
-            Update();
-
-            _oldHover = _newHover;
+            on = !on;
+            return base.OnClick();
         }
-
-        public void Draw(bool beginBatch = true)
-        {
-            if (beginBatch) Main.Batch.Begin(Main.DefaultSort, Main.DefaultBlend);
-
-            Main.Batch.DrawString(Font, Name, DrawPosition, Color, rotation, Font.MeasureString(Name) / 2, scale, SpriteFX, 0f);
-            //Main.Batch.Draw(TextureAssets.WhitePixel, HoverBox, Color.White * 0.25f);
-
-            if (beginBatch) Main.Batch.End();
-        }
-        public override string ToString()
-        {
-            return "{ IsHovered: " + IsHovered + " | Scale: " + scale + " | Name: " + Name + " }";
-        }
-        internal void AutoDefaults()
-        {
-            scale = 1f;
-            rotation = 0f;
-        }
-
-        public event EventHandler Clicked;
+        public override string Name => "BG Noise: " + (on ? "On" : "Off");
+        public override Vector2 DrawPosition => new Vector2(100, Main.screenHeight - 20);
     }
 }
